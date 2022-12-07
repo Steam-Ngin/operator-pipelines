@@ -8,7 +8,7 @@ spec:
     - name: pipeline_image
     - name: podman_image
       description: Podman image
-      default: "registry.redhat.io/rhel8/podman:8.5-13"
+      default: "registry.redhat.io/rhel8/podman:8.7"
     - name: bundle_image
       description: Pull spec of a bundle image
     - name: from_index
@@ -126,7 +126,7 @@ spec:
           opm migrate index.db index
 
           # Generate the index Dockerfile
-          opm alpha generate dockerfile index
+          opm generate dockerfile index
 
           # Amend the Dockerfile with the addition of the sqlite DB for backwards compatibility
           echo -e "\nADD index.db $DB_PATH\n" >> index.Dockerfile

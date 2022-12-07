@@ -7,8 +7,9 @@
     op_work_dir: "{{ ansible_env.HOME }}/.op"
     op_bin_dir: "{{ op_work_dir }}/bin"
     registry_cert_dir: "{{ op_work_dir }}/certs"
-    run_cleanup: false
     oc_namespace: default
+    run_upstream: true
+    run_cleanup: false
 
   environment:
     # User has to do 'export SSL_CERT_DIR=$HOME/.op/certs' when running in rootless mode
@@ -28,6 +29,7 @@
       when: prerequisites is undefined or prerequisites | bool
       tags:
         - clean
+        - prerequisites
         - install
         - verify
 
@@ -52,9 +54,21 @@
         - verify
         - kind-install
 
+    - name: "Install iib"
+      ansible.builtin.include_role:
+        name: install_iib
+      when: skip_iib is undefined or not skip_iib | bool
+      tags:
+        - clean
+        - install
+        - iib-install
+        - iib-delete
+
+
     - name: "Install OLM"
       ansible.builtin.include_role:
         name: install-olm
+      when: skip_olm is undefined or not skip_olm | bool
       tags:
         - clean
         - install
@@ -68,15 +82,6 @@
         - install
         - verify
 
-    - name: "Install iib"
-      ansible.builtin.include_role:
-        name: install_iib
-      tags:
-        - clean
-        - install
-        - iib-install
-        - iib-delete
-
     - name: "Install operator pipeline"
       ansible.builtin.include_role:
         name: operator-pipeline
@@ -85,6 +90,8 @@
         - tekton-task
         - tekton-pipeline
         - ci
+        - tekton-task-upstream
+        - tekton-pipeline-upstream
 
     - name: "Delete kind cluster"
       ansible.builtin.include_role:
@@ -98,6 +105,6 @@
         var: community_final_report
       when:
         - community_final_report is defined
-        - community_final_report|length > 0
+        - community_final_report | length > 0
       tags:
         - always
